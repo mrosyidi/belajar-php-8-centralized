@@ -37,6 +37,7 @@
     foreach($properties as $property)
     {
       validateNotBlank($property, $object);
+      validateLength($property, $object);
     }
   }
 
@@ -57,7 +58,34 @@
     }
   }
 
+  function validateLength(ReflectionProperty $property, object $object): void
+  {
+    if(!$property->isInitialized($object) || $property->getValue($object) == null)
+    {
+      return;
+    }
+
+    $value = $property->getValue($object);
+    $attributes = $property->getAttributes(Length::class);
+
+    foreach($attributes as $attribute)
+    {
+      $length = $attribute->newInstance();
+      $valueLength = strlen($value);
+
+      if($valueLength < $length->min)
+      {
+        throw new Exception("Property $property->name size is too short");
+      }
+
+      if($valueLength > $length->max)
+      {
+        throw new Exception("Property $property->name size is too long");
+      }
+    }
+  }
+
   $request = new LoginRequest();
-  $request->username = "eko";
-  $request->password = null;
+  $request->username = "eko123";
+  $request->password = "rahasia123";
   validate($request);
